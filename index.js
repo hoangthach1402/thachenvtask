@@ -4,8 +4,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+var cors = require('cors');
 
 const app = express();
+app.use(cors());
 const PORT = process.env.PORT || 3000;
 // const DATA_URL ="mongodb+srv://hoangthach1402:hoangthach123@cluster0.mmtet.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 
