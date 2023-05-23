@@ -141,11 +141,11 @@ app.post('/tasks', async (req, res) => {
 app.put('/tasks/:taskId', async (req, res) => {
   try {
     const taskId = req.params.taskId;
-    const { name, deadline } = req.body;
+    const { name, deadline,isCompleted } = req.body;
     const userId = req.userData.userId;
     const updatedTask = await Task.findOneAndUpdate(
       { _id: taskId, owner: userId },
-      { name, deadline },
+      { name, deadline,isCompleted },
       { new: true }
     );
     await logAuditTrail('update', userId, taskId);
