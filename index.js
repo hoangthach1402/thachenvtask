@@ -52,9 +52,10 @@ const logAuditTrail = async (action, userId, taskId) => {
 
 const checkAuth = (req, res, next) => {
   try {
+    console.log(1)
     const token = req.headers.authorization;
     const decodedToken = jwt.verify(token, 'SECRET_KEY');
-    // console.log(decodedToken)
+    console.log(decodedToken)
     req.userData = { userId: decodedToken.userId };
     // console.log()
     next();
@@ -165,7 +166,19 @@ app.get('/tasks/:taskId', async (req, res) => {
     res.status(500).json({ error: 'Lỗi lấy thông tin task' });
   }
 });
+app.get('/users/:userId/tasks', async (req, res) => {
+  const { userId } = req.params;
 
+  try {
+    // Tìm tất cả các task thuộc về userId
+    const tasks = await Task.find({ owner: userId });
+
+    res.json({ tasks });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
 // Tạo một task mới
 app.post('/tasks', async (req, res) => {
   try {
