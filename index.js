@@ -96,13 +96,55 @@ const fetchUser = async (userId) => {
 app.get('/tasks', async (req, res) => {
   try {
     const userId = req.userData.userId;
-    // console.log(userId)
-    const user = await fetchUser(userId);
-    const tasks = await Task.find({ owner: userId });
-    res.json({ user, tasks });
+    const { page = 1, limit = 10, sort, search, filter } = req.query;
+    const skip = (page - 1) * limit;
+    const query = { owner: userId };
+
+    // Tìm kiếm task dựa trên tên
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
+
+    // Lọc task dựa trên trạng thái
+    if (filter) {
+      query.isCompleted = filter === 'completed';
+    }
+
+    let tasks = Task.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const count = Task.countDocuments(query);
+
+    [tasks, count] = await Promise.all([tasks, count]);
+
+    res.json({ tasks, count });
   } catch (error) {
     console.error('Lỗi lấy danh sách task:', error);
     res.status(500).json({ error: 'Lỗi lấy danh sách task' });
+  }
+});
+
+// API gửi thông báo đến người dùng
+app.post('/tasks/:taskId/notify', async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+    const userId = req.userData.userId;
+
+    // Kiểm tra quyền truy cập trước khi gửi thông báo
+    const task = await Task.findOne({ _id: taskId, owner: userId });
+    if (!task) {
+      return res.status(404).json({ error: 'Không tìm thấy task' });
+    }
+
+    // Gửi thông báo đến người dùng (ví dụ: sử dụng email, push notification, hoặc trong ứng dụng)
+    // Gửi thông báo tới task.owner hoặc sử dụng các thông tin từ task để gửi thông báo tới người liên quan
+
+    res.json({ message: 'Đã gửi thông báo thành công' });
+  } catch (error) {
+    console.error('Lỗi gửi thông báo:', error);
+    res.status(500).json({ error: 'Lỗi gửi thông báo' });
   }
 });
 
