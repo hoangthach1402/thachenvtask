@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 var cors = require('cors');
+const notificationJob = require('./notificationJob');
 
 const app = express();
 app.use(cors());
@@ -25,7 +26,7 @@ const connectDB = async () => {
   };
   
   connectDB();
-
+  notificationJob.start();
   // Tạo schema cho task
 const taskSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -41,7 +42,7 @@ const auditTrailSchema = new mongoose.Schema({
   taskId: { type: mongoose.Schema.Types.ObjectId },
   timestamp: { type: Date, default: Date.now }
 });
-
+module.exports = { Task };
 const AuditTrail = mongoose.model('AuditTrail', auditTrailSchema);
 
 const logAuditTrail = async (action, userId, taskId) => {
@@ -108,7 +109,7 @@ app.get('/tasks', async (req, res) => {
 
     // Lọc task dựa trên trạng thái
     if (filter) {
-      query.isCompleted = filter === 'completed';
+      query.isCompleted = filter === 'true';
     }
 
     let tasks = Task.find(query)
@@ -126,7 +127,6 @@ app.get('/tasks', async (req, res) => {
     res.status(500).json({ error: 'Lỗi lấy danh sách task' });
   }
 });
-
 // API gửi thông báo đến người dùng
 app.post('/tasks/:taskId/notify', async (req, res) => {
   try {
